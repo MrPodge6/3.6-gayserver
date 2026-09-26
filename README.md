@@ -1,2 +1,8 @@
 # 3.6-gayserver
-this is going to be very gay and lesbian
+this very homosexual fortnite gameserver will run soon
+
+
+Todo:
+[] Base
+
+yeah theres no ingame
