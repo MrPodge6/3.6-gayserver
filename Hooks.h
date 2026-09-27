@@ -6,10 +6,10 @@
 namespace Hooks
 {
 	bool ReadyToStartMatch(AFortGameModeAthena* thisptr) {
-		static int NumberOfCalls = 0;
+		static int NumberOfCalls = 0; // keep updating ts
 		AFortGameStateAthena* GameState = (AFortGameStateAthena*)thisptr->GameState;
 
-		if (!GameState || GameState->MapInfo)
+		if (!GameState || GameState->MapInfo) // if the map doesnt load or doesnt have Gamestate will just return readytostartmatch as false
 			return false;
 
 		if (NumberOfCalls == 0) {
@@ -22,12 +22,12 @@ namespace Hooks
 			thisptr->CurrentPlaylistId = Playlist->PlaylistId;
 			thisptr->CurrentPlaylistName = Playlist->PlaylistName;
 			GameState->CurrentPlaylistId = Playlist->PlaylistId;
-			
+
 			GameState->OnRep_CurrentPlaylistData();
 			GameState->OnRep_CurrentPlaylistId();
 
-			thisptr->WarmupRequiredPlayerCount = 1;
-			
+			thisptr->WarmupRequiredPlayerCount = 1; // change to ur liking ig
+
 			NumberOfCalls++;
 
 		}
@@ -39,46 +39,69 @@ namespace Hooks
 			NetDriver->NetDriverName = GameNetDriverName;
 
 			FURL URL{};
-			URL.Port = 7777;
+			URL.Port = 7777; // port of the gs
 
 			FString TemporaryString;
 			Sarah::Funcs::InitListen(NetDriver, UWorld::GetWorld(), URL, false, TemporaryString);
 			Sarah::Funcs::SetWorld(NetDriver, UWorld::GetWorld());
 
 			for (auto& LevelCollection : UWorld::GetWorld()->LevelCollections) {
-				LevelCollection.NetDriver = NetDriver;
+				LevelCollection.NetDriver = NetDriver; // important so it adds a valid netdriver to each level
 			}
 
+			thisptr->bWorldIsReady = true;
+
 			SetConsoleTitleA("Listening is now on - Podges Gayserver");
+			NumberOfCalls++;
 
 
 		}
-		
-		return thisptr->AlivePlayers.Num() >= thisptr->WarmupRequiredPlayerCount;
+
+		return thisptr->AlivePlayers.Num() >= thisptr->WarmupRequiredPlayerCount; // returns true if there is the same or more players than required to start warmup (spawn island)
 
 	}
 	APawn* SpawnDefaultPawnFor(AFortGameModeAthena* GameMode, AFortPlayerControllerAthena* Controller, AActor* StartSpot) {
-		return GameMode->SpawnDefaultPawnAtTransform(Controller, StartSpot->GetTransform());
+		return GameMode->SpawnDefaultPawnAtTransform(Controller, StartSpot->GetTransform()); // spawns the player i think at the start spot location??
 	}
 
 	inline void (*TickFlush_OG)(UNetDriver* NetDriver, float DeltaSeconds);
-	void TickFlush(UNetDriver* Driver, float DeltaSeconds)
-		//ServerReplicateActors
+	void TickFlush(UNetDriver* Driver, float DeltaSeconds) // does ticks
+
 	{
+		static bool bDidLevelSwitch = false;
+		if (!bDidLevelSwitch) {
+			auto World = UWorld::GetWorld();
+			if (World && World->OwningGameInstance && World->OwningGameInstance->LocalPlayers.Num() > 0) {
+				auto GameInstance = World->OwningGameInstance;
+				auto LocalPlayer = GameInstance->LocalPlayers[0];
+				if (LocalPlayer && LocalPlayer->PlayerController) {
+					LocalPlayer->PlayerController->SwitchLevel(L"Athena_Terrain");
+				}
+				while (GameInstance->LocalPlayers.Num() > 0) {
+					GameInstance->LocalPlayers.Remove(0);
+				}
+				bDidLevelSwitch = true;
+			}
+		}
+
 		if (Driver->ReplicationDriver) {
-			// ServerReplicateActors(Driver->ReplicationDriver, DeltaSeconds); i cant find the fucking offset pls tell me what it is :`(
+			Sarah::Funcs::ServerReplicateActors(Driver->ReplicationDriver, DeltaSeconds); //i found the offset finally yes. Updates the client i believe?
 
 		}
 
 		return TickFlush_OG(Driver, DeltaSeconds);
 	}
 
-	
+
 }
 
 namespace Patches
 {
 	int ReturnTrue() {
-		return 1;
+		return 1; // easy function to use fast
+	}
+
+	void ReturnHook() {
+		return; // returns the hook
 	}
 }
