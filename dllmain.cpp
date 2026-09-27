@@ -1,5 +1,10 @@
 
-#include "pch.h"
+
+#include "SDK/SDK.hpp"
+#include "framework.h"
+
+using namespace std;
+using namespace SDK;
 
 
 DWORD WINAPI Main(LPVOID)
@@ -9,7 +14,9 @@ DWORD WINAPI Main(LPVOID)
 	freopen_s(&File, "CONOUT$", "w", stdout);
 	SetConsoleTitleA("Gameserver - Podge");
 
-    return 0
+    UKismetSystemLibrary::ExecuteConsoleCommand(UWorld::GetWorld(), L"Open Athena_Terrain", nullptr);
+
+    return 0;
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,

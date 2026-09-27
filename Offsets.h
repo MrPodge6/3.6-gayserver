@@ -58,6 +58,8 @@ namespace Sarah {
         inline std::array<uint64_t, 0> RetTrueFuncs = {  };
     };
 
+    
+
     namespace Vfts {
     };
 
