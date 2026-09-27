@@ -49,9 +49,12 @@ namespace Sarah {
         inline uint64_t GetMaxTickRate = 0x2508650;
         inline uint64_t DispatchRequest = 0x7f2370;
         inline uint64_t Realloc = 0x1280550;
+        inline uint64_t SpawnDefaultPawnFor = 0xA083A0;
+        inline uint64_t ReadyToStartMatch = 0xA02220;
         inline uint64_t StaticFindObject = 0x14e5890;
         inline uint64_t StaticLoadObject = 0x14e7390;
-        inline uint64_t GIsClient = 0x4a9ca14;
+        inline uint64_t GIsClient = 0x4a9ca14; 
+        inline uint64_t GIsServer = 0x4A9CA15;
         inline uint64_t GameSessionPatch = 0x9eb786;
         inline uint64_t EncryptionPatch = 0x255bb1e;
         inline std::array<uint64_t, 4> NullFuncs = { 0xa767b0, 0xc22e90, 0xd772c0 };

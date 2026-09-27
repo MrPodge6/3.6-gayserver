@@ -13,7 +13,7 @@ namespace Hooks
 			return false;
 
 		if (NumberOfCalls == 0) {
-			UFortPlaylistAthena* Playlist = UObject::FindObject<UFortPlaylistAthena>("FortPlaylistAthena Playlist_DefaultSolo.Playlist_DefaultSolo");
+			UFortPlaylistAthena* Playlist = UObject::FindObject<UFortPlaylistAthena>("Playlist_DefaultSolo.Playlist_DefaultSolo");
 			GameState->CurrentPlaylistData = Playlist;
 
 			// reminder: Podge do not use this s6 or above as it gotta be different or it fucking breaks the gayserver
@@ -25,15 +25,39 @@ namespace Hooks
 			
 			GameState->OnRep_CurrentPlaylistData();
 			GameState->OnRep_CurrentPlaylistId();
-			
 
+			thisptr->WarmupRequiredPlayerCount = 1;
+			
 			NumberOfCalls++;
 
 		}
 		if (NumberOfCalls == 1) {
 			// use Sarah::Funcs we dont need to make a funcs file
+			auto GameNetDriverName = UKismetStringLibrary::Conv_StringToName(L"GameNetDriver");
 			UNetDriver* NetDriver = Sarah::Funcs::CreateNetDriver(UEngine::GetEngine(), UWorld::GetWorld(), UKismetStringLibrary::Conv_StringToName(L"GameNetDriver"));
 			NetDriver->World = UWorld::GetWorld();
+			NetDriver->NetDriverName = GameNetDriverName;
+
+			FURL URL{};
+			URL.Port = 7777;
+
+			FString TemporaryString;
+			Sarah::Funcs::InitListen(NetDriver, UWorld::GetWorld(), URL, false, TemporaryString);
+			Sarah::Funcs::SetWorld(NetDriver, UWorld::GetWorld());
+
+			for (auto& LevelCollection : UWorld::GetWorld()->LevelCollections) {
+				LevelCollection.NetDriver = NetDriver;
+			}
+
+			SetConsoleTitleA("Listening is now on - Podges Gayserver");
+
+
 		}
+		
+		return thisptr->AlivePlayers.Num() >= thisptr->WarmupRequiredPlayerCount;
+
+	}
+	APawn* SpawnDefaultPawnFor(AFortGameModeAthena* GameMode, AFortPlayerControllerAthena* Controller, AActor* StartSpot) {
+		return GameMode->SpawnDefaultPawnAtTransform(Controller, StartSpot->GetTransform());
 	}
 }

@@ -15,3 +15,12 @@ using namespace SDK;
 
 #include "minhook/MinHook.h"
 #include "Offsets.h"
+
+
+static void HookThings(uint64_t Offsets, PVOID Hook, void** Detour)
+{
+	MH_CreateHook((PVOID)Offsets, Hook, Detour);
+	MH_EnableHook((PVOID)Offsets);
+}
+
+#define Hook(...) HookThings(__VA_ARGS__);
