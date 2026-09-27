@@ -60,4 +60,25 @@ namespace Hooks
 	APawn* SpawnDefaultPawnFor(AFortGameModeAthena* GameMode, AFortPlayerControllerAthena* Controller, AActor* StartSpot) {
 		return GameMode->SpawnDefaultPawnAtTransform(Controller, StartSpot->GetTransform());
 	}
+
+	inline void (*TickFlush_OG)(UNetDriver* NetDriver, float DeltaSeconds);
+	void TickFlush(UNetDriver* Driver, float DeltaSeconds)
+		//ServerReplicateActors
+	{
+		if (Driver->ReplicationDriver) {
+			// ServerReplicateActors(Driver->ReplicationDriver, DeltaSeconds); i cant find the fucking offset pls tell me what it is :`(
+
+		}
+
+		return TickFlush_OG(Driver, DeltaSeconds);
+	}
+
+	
+}
+
+namespace Patches
+{
+	int ReturnTrue() {
+		return 1;
+	}
 }

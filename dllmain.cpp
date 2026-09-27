@@ -17,8 +17,10 @@ DWORD WINAPI Main(LPVOID)
 
     *(bool*)(Sarah::Offsets::GIsClient) = false;
     *(bool*)(Sarah::Offsets::GIsServer) = true;
-
     
+    Hook(Sarah::Offsets::KickPlayer, Patches::ReturnTrue, 0);
+    Hook(Sarah::Offsets::GetNetMode, Patches::ReturnTrue, 0);
+
     Hook(Sarah::Offsets::ReadyToStartMatch + ImageBase, Hooks::ReadyToStartMatch, 0);
 	Hook(Sarah::Offsets::SpawnDefaultPawnFor + ImageBase, Hooks::SpawnDefaultPawnFor, 0);   
 
