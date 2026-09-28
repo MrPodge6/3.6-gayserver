@@ -19,13 +19,16 @@ using namespace SDK;
 
 static void HookThings(uint64_t Offsets, PVOID Hook, void** Detour)
 {
-	static bool bInitialized = false;
-	if (!bInitialized) {
-		MH_Initialize();
-		bInitialized = true;
-	}
-	MH_CreateHook((PVOID)Offsets, Hook, Detour);
-	MH_EnableHook((PVOID)Offsets);
+    static bool bInitialized = false;
+    if (!bInitialized) {
+        MH_Initialize();
+        bInitialized = true;
+    }
+    MH_CreateHook((PVOID)Offsets, Hook, Detour);
+    MH_EnableHook((PVOID)Offsets);
 }
 
-#define Hook(...)HookThings(__VA_ARGS__);
+static void HookThings(uint64_t Offsets, PVOID Hook)
+{
+    HookThings(Offsets, Hook, nullptr);
+}
