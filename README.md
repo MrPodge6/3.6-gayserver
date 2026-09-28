@@ -1,8 +1,12 @@
-# 3.6-gayserver
-this very homosexual fortnite gameserver will run soon
+# 3.6-gameserver
+Not that good, first time trying to do it. **Doesn't work right now but will be able to get ingame soon!**
+
+If you want to help at all just open a pull request  and I will see if it can be used! 
+
 
 
 Todo:
-[] Base
+[X] Base - Get ingame soon guys
 
-yeah theres no ingame
+
+# Thanks for checking this out - Podge!
