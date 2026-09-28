@@ -7,24 +7,32 @@ namespace Hooks
 {
 	bool ReadyToStartMatch(AFortGameModeAthena* thisptr) {
 		static int NumberOfCalls = 0; // keep updating ts
-		AFortGameStateAthena* GameState = (AFortGameStateAthena*)thisptr->GameState;
-
-		if (!GameState || GameState->MapInfo) // if the map doesnt load or doesnt have Gamestate will just return readytostartmatch as false
+		
+		if (!thisptr || !thisptr->GameState)
 			return false;
 
+		AFortGameStateAthena* GameState = (AFortGameStateAthena*)thisptr->GameState;
+
 		if (NumberOfCalls == 0) {
+			UWorld* World = UWorld::GetWorld();
+			if (World && World->OwningGameInstance && World->OwningGameInstance->LocalPlayers.Num() > 0) {
+				World->OwningGameInstance->LocalPlayers.Remove(0); // will see if this actually works later.
+			}
+
 			UFortPlaylistAthena* Playlist = UObject::FindObject<UFortPlaylistAthena>("Playlist_DefaultSolo.Playlist_DefaultSolo");
-			GameState->CurrentPlaylistData = Playlist;
+			if (Playlist) {
+				GameState->CurrentPlaylistData = Playlist;
 
-			// reminder: Podge do not use this s6 or above as it gotta be different or it fucking breaks the gayserver
+				// reminder: Podge do not use this s6 or above as it gotta be different or it fucking breaks the gayserver
 
 
-			thisptr->CurrentPlaylistId = Playlist->PlaylistId;
-			thisptr->CurrentPlaylistName = Playlist->PlaylistName;
-			GameState->CurrentPlaylistId = Playlist->PlaylistId;
+				thisptr->CurrentPlaylistId = Playlist->PlaylistId;
+				thisptr->CurrentPlaylistName = Playlist->PlaylistName;
+				GameState->CurrentPlaylistId = Playlist->PlaylistId;
 
-			GameState->OnRep_CurrentPlaylistData();
-			GameState->OnRep_CurrentPlaylistId();
+				GameState->OnRep_CurrentPlaylistData();
+				GameState->OnRep_CurrentPlaylistId();
+			}
 
 			thisptr->WarmupRequiredPlayerCount = 1; // change to ur liking ig
 
@@ -33,26 +41,30 @@ namespace Hooks
 		}
 		if (NumberOfCalls == 1) {
 			// use Sarah::Funcs we dont need to make a funcs file
+			UWorld* World = UWorld::GetWorld();
 			auto GameNetDriverName = UKismetStringLibrary::Conv_StringToName(L"GameNetDriver");
-			UNetDriver* NetDriver = Sarah::Funcs::CreateNetDriver(UEngine::GetEngine(), UWorld::GetWorld(), UKismetStringLibrary::Conv_StringToName(L"GameNetDriver"));
-			NetDriver->World = UWorld::GetWorld();
-			NetDriver->NetDriverName = GameNetDriverName;
+			UNetDriver* NetDriver = Sarah::Funcs::CreateNetDriver(UEngine::GetEngine(), World, UKismetStringLibrary::Conv_StringToName(L"GameNetDriver"));
+			
+			if (NetDriver) {
+				NetDriver->World = World;
+				NetDriver->NetDriverName = GameNetDriverName;
 
-			FURL URL{};
-			URL.Port = 7777; // port of the gs
+				FURL URL{};
+				URL.Port = 7777; // port of the gs
 
-			FString TemporaryString;
-			Sarah::Funcs::InitListen(NetDriver, UWorld::GetWorld(), URL, false, TemporaryString);
-			Sarah::Funcs::SetWorld(NetDriver, UWorld::GetWorld());
+				FString TemporaryString;
+				Sarah::Funcs::InitListen(NetDriver, World, URL, false, TemporaryString);
+				Sarah::Funcs::SetWorld(NetDriver, World);
 
-			for (auto& LevelCollection : UWorld::GetWorld()->LevelCollections) {
-				LevelCollection.NetDriver = NetDriver; // important so it adds a valid netdriver to each level
+				for (auto& LevelCollection : World->LevelCollections) {
+					LevelCollection.NetDriver = NetDriver; // important so it adds a valid netdriver to each level
+				}
+
+				thisptr->bWorldIsReady = true;
+
+				SetConsoleTitleA("Listening is now on - Podges Gayserver");
+				NumberOfCalls++;
 			}
-
-			thisptr->bWorldIsReady = true;
-
-			SetConsoleTitleA("Listening is now on - Podges Gayserver");
-			NumberOfCalls++;
 
 
 		}
@@ -68,23 +80,9 @@ namespace Hooks
 	void TickFlush(UNetDriver* Driver, float DeltaSeconds) // does ticks
 
 	{
-		static bool bDidLevelSwitch = false;
-		if (!bDidLevelSwitch) {
-			auto World = UWorld::GetWorld();
-			if (World && World->OwningGameInstance && World->OwningGameInstance->LocalPlayers.Num() > 0) {
-				auto GameInstance = World->OwningGameInstance;
-				auto LocalPlayer = GameInstance->LocalPlayers[0];
-				if (LocalPlayer && LocalPlayer->PlayerController) {
-					LocalPlayer->PlayerController->SwitchLevel(L"Athena_Terrain");
-				}
-				while (GameInstance->LocalPlayers.Num() > 0) {
-					GameInstance->LocalPlayers.Remove(0);
-				}
-				bDidLevelSwitch = true;
-			}
-		}
+		
 
-		if (Driver->ReplicationDriver) {
+		if (Driver && Driver->ReplicationDriver) {
 			Sarah::Funcs::ServerReplicateActors(Driver->ReplicationDriver, DeltaSeconds); //i found the offset finally yes. Updates the client i believe?
 
 		}
