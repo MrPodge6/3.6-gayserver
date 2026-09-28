@@ -13,7 +13,7 @@
 using namespace std;
 using namespace SDK;
 
-#include "minhook/MinHook.h"
+#include "minhook/minhook.h"
 #include "Offsets.h"
 
 
