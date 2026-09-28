@@ -1,6 +1,7 @@
 #include "SDK/SDK.hpp"
 #include "framework.h"
 #include "Hooks.h"
+#include "minhook/minhook.h"
 
 using namespace std;
 using namespace SDK;
@@ -12,19 +13,19 @@ DWORD WINAPI Main(LPVOID)
     freopen_s(&File, "CONOUT$", "w", stdout);
     SetConsoleTitleA("Gameserver - Podge");
 
-    *(bool*)(Sarah::Offsets::GIsClient) = false;
-    *(bool*)(Sarah::Offsets::GIsServer) = true;
-
     for (auto& Offset : Sarah::Offsets::NullFuncs) {
-        Hook(Offset + ImageBase, Patches::ReturnHook, 0);
+        Hook(Offset + ImageBase, Patches::ReturnHook, nullptr);
     }
 
     Hook(Sarah::Offsets::TickFlush + ImageBase, Hooks::TickFlush, (void**)&Hooks::TickFlush_OG);
-    Hook(Sarah::Offsets::KickPlayer + ImageBase, Patches::ReturnTrue, 0);
-    Hook(Sarah::Offsets::GetNetMode + ImageBase, Patches::ReturnTrue, 0);
+    Hook(Sarah::Offsets::KickPlayer + ImageBase, Patches::ReturnTrue, nullptr);
+    Hook(Sarah::Offsets::GetNetMode + ImageBase, Patches::ReturnTrue, nullptr);
 
-    Hook(Sarah::Offsets::ReadyToStartMatch + ImageBase, Hooks::ReadyToStartMatch, 0);
-    Hook(Sarah::Offsets::SpawnDefaultPawnFor + ImageBase, Hooks::SpawnDefaultPawnFor, 0);
+    Hook(Sarah::Offsets::ReadyToStartMatch + ImageBase, Hooks::ReadyToStartMatch, nullptr);
+    Hook(Sarah::Offsets::SpawnDefaultPawnFor + ImageBase, Hooks::SpawnDefaultPawnFor, nullptr);
+
+    *(bool*)(Sarah::Offsets::GIsClient) = false;
+    *(bool*)(Sarah::Offsets::GIsServer) = true;
 
     return 0;
 }
@@ -35,7 +36,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
     case DLL_PROCESS_ATTACH:
         DisableThreadLibraryCalls(hModule);
-        CreateThread(0, 0, Main, 0, 0, 0);
+        std::thread(Main).detach();
+        break;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
         break;
     }
     return TRUE;
