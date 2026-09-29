@@ -24,7 +24,13 @@ DWORD WINAPI Main(LPVOID)
     HookThings(Sarah::Offsets::SpawnDefaultPawnFor + ImageBase, Hooks::SpawnDefaultPawnFor, nullptr);
 
     *(bool*)(Sarah::Offsets::GIsClient + ImageBase) = false;
-    *(bool*)(Sarah::Offsets::GIsServer + ImageBase) = true;
+   // *(bool*)(Sarah::Offsets::GIsServer + ImageBase) = true;
+
+    UWorld* World = UWorld::GetWorld();
+    if (World && World->OwningGameInstance && World->OwningGameInstance->LocalPlayers.Num() > 0) {
+        World->OwningGameInstance->LocalPlayers.Remove(0); // will see if this actually works later.
+    }
+    UKismetSystemLibrary::ExecuteConsoleCommand(World, L"open Athena_Terrain", nullptr);
 
     return 0;
 }

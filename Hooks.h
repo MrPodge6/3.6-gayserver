@@ -14,12 +14,8 @@ namespace Hooks
 		AFortGameStateAthena* GameState = (AFortGameStateAthena*)thisptr->GameState;
 
 		if (NumberOfCalls == 0) {
-			UWorld* World = UWorld::GetWorld();
-			if (World && World->OwningGameInstance && World->OwningGameInstance->LocalPlayers.Num() > 0) {
-				World->OwningGameInstance->LocalPlayers.Remove(0); // will see if this actually works later.
-			}
-
-			UFortPlaylistAthena* Playlist = UObject::FindObject<UFortPlaylistAthena>("Playlist_DefaultSolo.Playlist_DefaultSolo");
+			
+			UFortPlaylistAthena* Playlist = UObject::FindObject<UFortPlaylistAthena>("FortPlaylistAthena Playlist_DefaultSolo.Playlist_DefaultSolo");
 			if (Playlist) {
 				GameState->CurrentPlaylistData = Playlist;
 
@@ -30,11 +26,14 @@ namespace Hooks
 				thisptr->CurrentPlaylistName = Playlist->PlaylistName;
 				GameState->CurrentPlaylistId = Playlist->PlaylistId;
 
-				GameState->OnRep_CurrentPlaylistData();
-				GameState->OnRep_CurrentPlaylistId();
+				
 			}
 
-			thisptr->WarmupRequiredPlayerCount = 1; // change to ur liking ig
+			if (thisptr->AlivePlayers.Num() >= thisptr->WarmupRequiredPlayerCount) {
+				GameState->OnRep_CurrentPlaylistData();
+				GameState->OnRep_CurrentPlaylistId();
+				return true;
+			}
 
 			NumberOfCalls++;
 
@@ -61,6 +60,8 @@ namespace Hooks
 				}
 
 				thisptr->bWorldIsReady = true;
+
+				
 
 				SetConsoleTitleA("Listening is now on - Podges Gayserver");
 				NumberOfCalls++;
@@ -91,6 +92,13 @@ namespace Hooks
 	}
 
 
+}
+
+void* SendRequestNow(void* Arg1, void* MCPData, int)
+{
+	(int)(__int64(MCPData) + 0x60) = 3;
+
+	return SendRequestNowOG(Arg1, MCPData, 3);
 }
 
 namespace Patches
